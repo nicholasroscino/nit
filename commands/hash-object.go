@@ -34,10 +34,7 @@ func calculateBlobHeader(myString string) (string, string) {
 	return fmt.Sprintf("%x\n", h.Sum(nil)), header
 }
 
-func HashObjectCommand(projectBasePath string, filePath string) {
-	nitFolder := projectBasePath + "/.nit"
-	fileFullPath := projectBasePath + "/" + filePath
-
+func HashObjectCommand(nitFolder string, fileFullPath string) {
 	fileContent, err := os.ReadFile(fileFullPath)
 	utils.Check(err, "The file specified does not exist\n")
 
