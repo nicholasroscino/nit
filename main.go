@@ -1,15 +1,27 @@
 package main
 
 import (
+	"log"
 	"nit/commands"
 	"nit/utils"
 	"os"
 )
 
+func isNitRepo(path string) bool {
+	if _, err := os.Stat(path + "/.nit"); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}
+
 func main() {
-	//println(os.Getenv("GOPATH"))
-	val, err := os.Getwd()
+	rootFolder, err := os.Getwd()
 	utils.Check(err, "Unable to get current working directory\n")
 
-	commands.HashObjectCommand(val+"/main.go", val)
+	if !isNitRepo(rootFolder) {
+		log.Fatal("Not a nit repository")
+	}
+
+	commands.HashObjectCommand(rootFolder, "file.txt")
 }
