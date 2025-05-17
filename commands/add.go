@@ -92,8 +92,12 @@ func writeIndex(nitPath string, index map[string]StagedObject) error {
 	return nil
 }
 
-func AddCommand(nitPath string, fileFullPath string) error {
+func AddCommand(nitPath string, filePath string) error {
 	index, err := getIndex(nitPath)
+
+	projectPath := nitPath[0:strings.LastIndex(nitPath, ".nit")]
+
+	fileFullPath := projectPath + filePath
 
 	if err != nil {
 		log.Println(err.Error())
@@ -108,7 +112,7 @@ func AddCommand(nitPath string, fileFullPath string) error {
 
 	hash, gzipContent := GetHashObject(fileFullPath)
 
-	if val, ok := index[fileFullPath]; ok && val.Hash == hash {
+	if val, ok := index[filePath]; ok && val.Hash == hash {
 		return errors.New("file already added to the index")
 	}
 
@@ -117,9 +121,9 @@ func AddCommand(nitPath string, fileFullPath string) error {
 		SaveHashToFile(nitPath, hash, gzipContent)
 	}
 
-	index[fileFullPath] = StagedObject{
+	index[filePath] = StagedObject{
 		Hash:      hash,
-		Path:      fileFullPath,
+		Path:      filePath,
 		Timestamp: time.Now().Format(time.RFC3339),
 	}
 

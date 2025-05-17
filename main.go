@@ -25,7 +25,7 @@ func main() {
 	//}
 
 	//log.Println(val)
-	err = commands.AddCommand(nitFolder, rootFolder+"/utils/utils.go")
+	err = commands.AddCommand(nitFolder, "/main.go")
 
 	// Check if the file was added to the index
 	if err != nil {
