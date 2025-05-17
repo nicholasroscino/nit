@@ -6,6 +6,7 @@ import (
 	"nit/utils"
 	"os"
 	"strings"
+	"time"
 )
 
 type StagedObject struct {
@@ -14,7 +15,25 @@ type StagedObject struct {
 	Timestamp string
 }
 
-func getIndex(nitPath string) (map[string]string, error) {
+func serializeStagedObject(stagedObject StagedObject) string {
+	return stagedObject.Hash + " " + stagedObject.Path + " " + stagedObject.Timestamp
+}
+
+func parseStagedObject(line string) (StagedObject, error) {
+	parts := strings.Split(line, " ")
+
+	if len(parts) != 3 {
+		return StagedObject{}, errors.New("error parsing the staged object")
+	}
+
+	return StagedObject{
+		Hash:      strings.Trim(parts[0], " "),
+		Path:      strings.Trim(parts[1], " "),
+		Timestamp: strings.Trim(parts[2], " "),
+	}, nil
+}
+
+func getIndex(nitPath string) (map[string]StagedObject, error) {
 	indexPath := nitPath + "/index"
 	_, err := os.Stat(indexPath)
 
@@ -25,7 +44,7 @@ func getIndex(nitPath string) (map[string]string, error) {
 	content, err := os.ReadFile(indexPath)
 	utils.Check(err, "Error reading the index file")
 
-	index := make(map[string]string)
+	index := make(map[string]StagedObject)
 
 	lines := string(content)
 
@@ -36,27 +55,30 @@ func getIndex(nitPath string) (map[string]string, error) {
 			continue
 		}
 
-		arrayLine := strings.Split(line, " ")
+		stagedObj, err := parseStagedObject(line)
 
-		if len(arrayLine) != 2 {
-			log.Fatal("Error parsing the index file")
+		if err != nil {
+			return nil, err
 		}
 
-		index[arrayLine[0]] = strings.Trim(arrayLine[1], " ")
+		index[stagedObj.Path] = StagedObject{
+			Hash:      stagedObj.Hash,
+			Path:      stagedObj.Path,
+			Timestamp: stagedObj.Timestamp,
+		}
 	}
 
 	return index, nil
 }
 
-func writeIndex(nitPath string, index map[string]string) error {
+func writeIndex(nitPath string, index map[string]StagedObject) error {
 	indexPath := nitPath + "/index"
 	file, err := os.OpenFile(indexPath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
 	utils.Check(err, "Error opening the index file")
 
-	for key, value := range index {
-		fileLineEntry := key + " " + strings.Trim(value, " ") + "\n"
-		log.Println(fileLineEntry)
-		_, err := file.WriteString(fileLineEntry)
+	for _, value := range index {
+		fileLineEntry := serializeStagedObject(value)
+		_, err := file.WriteString(fileLineEntry + "\n")
 		if err != nil {
 			return errors.New("error writing to the index file")
 		}
@@ -76,7 +98,7 @@ func AddCommand(nitPath string, fileFullPath string) error {
 	if err != nil {
 		log.Println(err.Error())
 		log.Println("recreating a new index file")
-		index = make(map[string]string)
+		index = make(map[string]StagedObject)
 		err2 := os.WriteFile(""+nitPath+"/index", []byte{}, 0644)
 
 		if err2 != nil {
@@ -86,7 +108,7 @@ func AddCommand(nitPath string, fileFullPath string) error {
 
 	hash, gzipContent := GetHashObject(fileFullPath)
 
-	if val, ok := index[fileFullPath]; ok && val == hash {
+	if val, ok := index[fileFullPath]; ok && val.Hash == hash {
 		return errors.New("file already added to the index")
 	}
 
@@ -95,7 +117,11 @@ func AddCommand(nitPath string, fileFullPath string) error {
 		SaveHashToFile(nitPath, hash, gzipContent)
 	}
 
-	index[fileFullPath] = hash
+	index[fileFullPath] = StagedObject{
+		Hash:      hash,
+		Path:      fileFullPath,
+		Timestamp: time.Now().Format(time.RFC3339),
+	}
 
 	err = writeIndex(nitPath, index)
 
