@@ -63,6 +63,6 @@ func SaveHashToFile(nitFolder string, hash string, gzipd string) {
 }
 
 func HashObjectCommand(nitFolder string, fileFullPath string) {
-	//hash, gzipd := GetHashObject(fileFullPath)
-	//SaveHashToFile(nitFolder, hash, gzipd)
+	hash, gzipd := GetHashObject(fileFullPath)
+	SaveHashToFile(nitFolder, hash, gzipd)
 }
