@@ -26,3 +26,17 @@ func GetNitRepoFolder(path string) (string, error) {
 
 	return path + "/.nit", nil
 }
+
+func ObjectExist(nitPath string, hash string) bool {
+	if len(hash) != 40 {
+		return false
+	}
+
+	pathToCheck := nitPath + "/objects/" + hash[0:2] + "/" + hash[2:]
+
+	if _, err := os.Stat(pathToCheck); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}

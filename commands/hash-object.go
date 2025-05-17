@@ -44,16 +44,25 @@ func calculateBlobHeader(myString string) (string, string) {
 	return fmt.Sprintf("%x", h.Sum(nil)), fullBlob
 }
 
-func HashObjectCommand(nitFolder string, fileFullPath string) {
+func GetHashObject(fileFullPath string) (string, string) {
 	fileContent, err := os.ReadFile(fileFullPath)
 	utils.Check(err, "The file specified does not exist\n")
 
 	hash, header := calculateBlobHeader(string(fileContent))
 	gzipd := toGZip(header)
 
-	err = os.Mkdir(nitFolder+"/objects/"+hash[0:2], 0755)
+	return hash, gzipd
+}
+
+func SaveHashToFile(nitFolder string, hash string, gzipd string) {
+	err := os.Mkdir(nitFolder+"/objects/"+hash[0:2], 0755)
 	utils.Check(err, "Unable to create object directory with hash:"+hash[0:2]+"\n")
 
 	err = os.WriteFile(nitFolder+"/objects/"+hash[0:2]+"/"+hash[2:], []byte(gzipd), 0644)
 	utils.Check(err, "Unable to write object file\n")
+}
+
+func HashObjectCommand(nitFolder string, fileFullPath string) {
+	//hash, gzipd := GetHashObject(fileFullPath)
+	//SaveHashToFile(nitFolder, hash, gzipd)
 }

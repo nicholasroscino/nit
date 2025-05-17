@@ -17,12 +17,18 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	//commands.HashObjectCommand(nitFolder, rootFolder+"/main.go")
-	ret, err := commands.CatFileCommand(nitFolder, "ac54cd8cfa2b1487e4b786ad29eced9829a2bd0b")
+	val, err := commands.CatFileCommand(nitFolder, "3ccc5503fe7775a47905c5bf7be999189234d9c8")
 
 	if err != nil {
 		log.Fatal(err.Error())
+
 	}
 
-	log.Println(ret)
+	log.Println(val)
+	//err = commands.AddCommand(nitFolder, rootFolder+"/main.go")
+	//
+	//// Check if the file was added to the index
+	//if err != nil {
+	//	log.Fatal(err.Error())
+	//}
 }
