@@ -17,5 +17,12 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	commands.HashObjectCommand(nitFolder, rootFolder+"/file.txt")
+	//commands.HashObjectCommand(nitFolder, rootFolder+"/main.go")
+	ret, err := commands.CatFileCommand(nitFolder, "ac54cd8cfa2b1487e4b786ad29eced9829a2bd0b")
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	log.Println(ret)
 }

@@ -30,8 +30,18 @@ func toGZip(content string) string {
 func calculateBlobHeader(myString string) (string, string) {
 	header := fmt.Sprintf("blob %d\u0000", len(myString))
 	h := sha1.New()
-	io.WriteString(h, header+myString)
-	return fmt.Sprintf("%x\n", h.Sum(nil)), header
+
+	fullBlob := header + myString
+	done, err := io.WriteString(h, fullBlob)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if done != len(header)+len(myString) {
+		log.Fatal("Error writing to hash")
+	}
+
+	return fmt.Sprintf("%x", h.Sum(nil)), fullBlob
 }
 
 func HashObjectCommand(nitFolder string, fileFullPath string) {
