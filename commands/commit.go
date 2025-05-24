@@ -75,8 +75,6 @@ func createCommitObject(nitPath string, treeHash string, author string, message 
 		if err2 != nil {
 			log.Fatal("Error getting tree hash from previous commit object:", err2)
 		}
-
-		log.Println(prevCommitHash, treeHash)
 	}
 
 	if prevCommitTreeHash != "" && prevCommitTreeHash == treeHash {
