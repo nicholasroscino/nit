@@ -29,8 +29,16 @@ func serialiseCommitObject(commitObj CommitObject) string {
 	return output
 }
 
+func getTreeHashFromFileContent(fileContent []string) (string, error) {
+	for _, line := range fileContent {
+		if strings.HasPrefix(line, "tree ") {
+			return strings.TrimSpace(strings.TrimPrefix(line, "tree ")), nil
+		}
+	}
+	return "", errors.New("no tree hash found in the commit object")
+}
+
 func createCommitObject(nitPath string, treeHash string, author string, message string) (string, error) {
-	// Take prev commit hash if exist at HEAD path
 	headPath := nitPath + "/HEAD"
 
 	currentHeadFilePathDesc, err := os.ReadFile(headPath)
@@ -42,13 +50,39 @@ func createCommitObject(nitPath string, treeHash string, author string, message 
 
 	fileContent, readHeadFileErr := os.ReadFile(currentHeadFilePath)
 
-	if readHeadFileErr != nil {
-		if !os.IsNotExist(readHeadFileErr) {
-			return "", readHeadFileErr
-		}
+	prevCommitTreeHash := ""
+
+	if readHeadFileErr != nil && !os.IsNotExist(readHeadFileErr) {
+		return "", readHeadFileErr
 	}
 
 	prevCommitHash := string(fileContent)
+
+	if !os.IsNotExist(readHeadFileErr) {
+		file, err2 := catHeaderAndContent(nitPath, prevCommitHash)
+
+		if err2 != nil {
+			log.Fatal("Error reading previous commit hash:", err2)
+		}
+
+		theType := strings.Split(file[0], " ")
+		if len(theType) < 2 || theType[0] != "commit" {
+			log.Fatal("The previous commit hash does not point to a valid commit object")
+		}
+
+		prevCommitTreeHash, err2 = getTreeHashFromFileContent(file)
+
+		if err2 != nil {
+			log.Fatal("Error getting tree hash from previous commit object:", err2)
+		}
+
+		log.Println(prevCommitHash, treeHash)
+	}
+
+	if prevCommitTreeHash != "" && prevCommitTreeHash == treeHash {
+		log.Println("ma qui ci finisco?")
+		log.Fatal("The tree hash is the same as the previous commit, no new commit created.")
+	}
 
 	newCommitObject := CommitObject{
 		TreeHash: treeHash,
@@ -58,15 +92,9 @@ func createCommitObject(nitPath string, treeHash string, author string, message 
 	}
 	commitFileContent := serialiseCommitObject(newCommitObject)
 	hash, gzipd := utils.GetHashObjectFromContent(commitFileContent, "commit")
-
-	if hash == prevCommitHash {
-		log.Fatal("Nothing to commit, working tree clean")
-	}
-
 	utils.SaveHashToFileManaged(nitPath, hash, gzipd)
 
-	// Write the new commit hash to HEAD
-	err = os.WriteFile(string(currentHeadFilePath), []byte(hash), 0644)
+	err = os.WriteFile(currentHeadFilePath, []byte(hash), 0644)
 	if err != nil {
 		return "", err
 	}

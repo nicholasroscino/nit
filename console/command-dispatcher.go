@@ -23,18 +23,16 @@ func catCommand() (*flag.FlagSet, *string) {
 func commitCommand() (*flag.FlagSet, *string, *string) {
 	fooCmd := flag.NewFlagSet("init", flag.ExitOnError)
 
-	message := fooCmd.String("message", "", "Commit message")
-	author := fooCmd.String("author", "", "Author of the commit")
+	message := fooCmd.String("m", "", "Commit message")
+	author := fooCmd.String("a", "", "Author of the commit")
 
 	return fooCmd, message, author
 }
 
-func addCommand() (*flag.FlagSet, *string) {
+func addCommand() *flag.FlagSet {
 	fooCmd := flag.NewFlagSet("init", flag.ExitOnError)
 
-	filePath := fooCmd.String("file", "", "Path to the file to add")
-
-	return fooCmd, filePath
+	return fooCmd
 }
 
 func initCommand() *flag.FlagSet {
@@ -46,7 +44,7 @@ func DispatchCommand(projectPath string, osArgs []string) {
 	initFlag := initCommand()
 	catFlag, hashValue := catCommand()
 	commitFlag, message, author := commitCommand()
-	addFLag, pathToAdd := addCommand()
+	addFLag := addCommand()
 	hashFlag, fullPathToHash := hashCommand()
 
 	switch osArgs[1] {
@@ -77,11 +75,17 @@ func DispatchCommand(projectPath string, osArgs []string) {
 	case "add":
 		err := addFLag.Parse(osArgs[2:])
 		utils.Check(err, "Error parsing add command arguments")
-		if *pathToAdd == "" {
+		files := addFLag.Args()
+
+		if len(files) == 0 {
 			log.Fatal("add command requires a file path.\n")
 		}
-		err = commands.AddCommand(projectPath, *pathToAdd)
-		utils.Check(err, "Error executing add command")
+
+		for _, pathToAdd := range files {
+			err = commands.AddCommand(projectPath, pathToAdd)
+			utils.Check(err, "Error executing add command")
+		}
+
 	case "commit":
 		err := commitFlag.Parse(osArgs[2:])
 		utils.Check(err, "Error parsing commit command arguments")

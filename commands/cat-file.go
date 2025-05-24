@@ -28,34 +28,46 @@ func fromGzip(content bytes.Buffer) (string, error) {
 	return out.String(), nil
 }
 
-func CatFileCommand(projectFolder string, hash string) (string, error) {
-	nitFolder := projectFolder + "/.nit"
-
+func catHeaderAndContent(nitFolder string, hash string) ([]string, error) {
 	if len(hash) != 40 {
-		return "", errors.New("the hash provided is not a valid SHA1 hash")
+		return nil, errors.New("the hash provided is not a valid SHA1 hash")
 	}
 
 	folder := nitFolder + "/objects/" + hash[0:2]
 	file := folder + "/" + hash[2:]
 
 	if _, err := os.Stat(file); os.IsNotExist(err) {
-		return "", errors.New("the hash provided does not exist in the repository")
+		return nil, errors.New("the hash provided does not exist in the repository")
 	}
 
 	content, err := os.ReadFile(file)
 	if err != nil {
-		return "", errors.New("Error reading the file:" + file)
+		return nil, errors.New("Error reading the file:" + file)
 	}
 
-	// Decompress the content
-	var buf bytes.Buffer = bytes.Buffer{}
+	var buf = bytes.Buffer{}
 	buf.Write(content)
 
 	theContent, err := fromGzip(buf)
 
 	if err != nil {
-		return "", errors.New("error decompressing the file provided: " + file)
+		return nil, errors.New("error decompressing the file provided: " + file)
 	}
 
-	return strings.Split(theContent, "\u0000")[1], nil
+	return strings.Split(theContent, "\u0000"), nil
+}
+
+func CatFileCommand(projectFolder string, hash string) (string, error) {
+	nitFolder := projectFolder + "/.nit"
+	file, err := catHeaderAndContent(nitFolder, hash)
+
+	if err != nil {
+		return "", err
+	}
+
+	if len(file) < 2 {
+		return "", errors.New("the file provided is not a valid nit file")
+	}
+
+	return file[1], nil
 }
