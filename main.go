@@ -4,41 +4,30 @@ import (
 	"log"
 	"nit/commands"
 	"nit/utils"
+	"os"
 )
 
 func main() {
-	//rootFolder, err := os.Getwd()
-	//utils.Check(err, "Unable to get current working directory\n")
+	rootFolder, err := os.Getwd()
+	utils.Check(err, "Unable to get current working directory\n")
 
-	//nitFolder, err := utils.GetNitRepoFolder(rootFolder)
+	err = os.Setenv("NIT_DEBUG", "1")
+	utils.Check(err, "Unable to set NIT_DEBUG environment variable\n")
 
-	//if err != nil {
-	//	log.Fatal(err.Error())
-	//}
+	//commands.InitCommand(rootFolder)
 
-	//val, err := commands.CatFileCommand(nitFolder, "3ccc5503fe7775a47905c5bf7be999189234d9c8")
-	//
-	//if err != nil {
-	//	log.Fatal(err.Error())
-	//
-	//}
+	nitFolder, err := utils.GetNitRepoFolder(rootFolder)
+	utils.Check(err, "Unable to find .nit folder in the current directory\n")
 
-	//log.Println(val)
-	//err = commands.AddCommand(nitFolder, "utils/utils.go")
-
-	//aec33fcd5dc772b58e1235ccb90c17c204b13267 utils/utils.go 2025-05-17T22:19:30+02:00
-	stagedObj := &utils.StagedObject{
-		Hash:      "aec33fcd5dc772b58e1235ccb90c17c204b13267",
-		Path:      "utils/culo/spectacle/prova/utils.go",
-		Timestamp: "2025-05-17T22:19:30+02:00",
+	err = commands.AddCommand(nitFolder, "main.go")
+	if err != nil {
+		log.Fatal(err.Error())
 	}
-
-	file := commands.WriteTree(stagedObj, nil)
-
-	log.Println(file)
-
-	// Check if the file was added to the index
-	//if err != nil {
-	//	log.Fatal(err.Error())
-	//}
+	//
+	//commitHash, err := commands.CatFileCommand(nitFolder, "79c9af3e42bfe5bbf4da21327b5324a0ad31a6e3")
+	commitHash, err := commands.CommitCommand(nitFolder, "nick!", "third commit")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	log.Print("Commit hash:\n", commitHash)
 }

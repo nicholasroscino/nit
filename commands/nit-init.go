@@ -7,7 +7,11 @@ import (
 
 func createNitFolders(path string) {
 	var err = os.Mkdir(path, 0755)
-	Check(err, "Unable to create .nit directory\n")
+	if err != nil && !os.IsExist(err) {
+		Check(err, "Unable to create .nit directory\n")
+	} else if os.IsExist(err) {
+		Check(err, "Already in a nit repository\n")
+	}
 
 	err = os.Mkdir(path+"/objects", 0755)
 	Check(err, "Unable to create .nit/objects directory\n")
@@ -32,6 +36,7 @@ func createNitFiles(path string) {
 }
 
 func InitCommand(path string) {
+	path = path + "/.nit"
 	createNitFolders(path)
 	createNitFiles(path)
 }

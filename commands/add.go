@@ -33,7 +33,7 @@ func AddCommand(nitPath string, filePath string) error {
 
 	exist := utils.ObjectExist(nitPath, hash)
 	if exist == false {
-		SaveHashToFile(nitPath, hash, gzipContent)
+		utils.SaveHashToFileManaged(nitPath, hash, gzipContent)
 	}
 
 	index[filePath] = utils.StagedObject{
