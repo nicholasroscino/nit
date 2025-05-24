@@ -2,22 +2,10 @@ package write_tree
 
 import (
 	"log"
+	"nit/commands"
 	"nit/utils"
 	"strings"
 )
-
-type NitNode struct {
-	Id    string
-	Hash  string
-	Files []*NitNode
-	Type  string
-}
-
-type FileContent struct {
-	Id   string
-	Hash string
-	Type string
-}
 
 func popFirstPathReturnRemaining(path string) (string, string) {
 	// Pop the first path and return the remaining path
@@ -30,7 +18,7 @@ func popFirstPathReturnRemaining(path string) (string, string) {
 	return path, ""
 }
 
-func printTree(node *NitNode, indent string) {
+func printTree(node *commands.NitNode, indent string) {
 	if node == nil {
 		return
 	}
@@ -41,12 +29,12 @@ func printTree(node *NitNode, indent string) {
 	}
 }
 
-func CreateTreeFile(nitPath string, node *NitNode) (string, []FileContent) {
-	arr := make([]FileContent, 0)
+func CreateTreeFile(nitPath string, node *commands.NitNode) (string, []commands.FileContent) {
+	arr := make([]commands.FileContent, 0)
 
 	if node.Type == "blob" {
-		arr := make([]FileContent, 0)
-		arr = append(arr, FileContent{
+		arr := make([]commands.FileContent, 0)
+		arr = append(arr, commands.FileContent{
 			Id:   node.Id,
 			Hash: node.Hash,
 			Type: "blob",
@@ -54,7 +42,7 @@ func CreateTreeFile(nitPath string, node *NitNode) (string, []FileContent) {
 		return node.Hash, arr
 	}
 
-	filesOfPath := make([]FileContent, 0)
+	filesOfPath := make([]commands.FileContent, 0)
 	for _, file := range node.Files {
 		_, files := CreateTreeFile(nitPath, file)
 		for _, f := range files {
@@ -74,7 +62,7 @@ func CreateTreeFile(nitPath string, node *NitNode) (string, []FileContent) {
 		log.Fatal("nothing to commit, working tree clean")
 	}
 
-	arr = append(arr, FileContent{
+	arr = append(arr, commands.FileContent{
 		Id:   node.Id,
 		Hash: hash,
 		Type: "tree",
@@ -83,14 +71,14 @@ func CreateTreeFile(nitPath string, node *NitNode) (string, []FileContent) {
 	return hash, arr
 }
 
-func WriteTree(currentPath *utils.StagedObject, rootNode *NitNode) *NitNode {
+func WriteTree(currentPath *utils.StagedObject, rootNode *commands.NitNode) *commands.NitNode {
 	if currentPath.Path == "" {
 		return rootNode
 	}
 
 	head, tail := popFirstPathReturnRemaining(currentPath.Path)
 
-	var child *NitNode
+	var child *commands.NitNode
 	for i := range rootNode.Files {
 		if rootNode.Files[i].Id == head {
 			child = rootNode.Files[i]
@@ -104,10 +92,10 @@ func WriteTree(currentPath *utils.StagedObject, rootNode *NitNode) *NitNode {
 			newType = "blob"
 		}
 
-		newNode := NitNode{
+		newNode := commands.NitNode{
 			Id:    head,
 			Type:  newType,
-			Files: []*NitNode{},
+			Files: []*commands.NitNode{},
 			Hash:  "",
 		}
 
@@ -138,10 +126,10 @@ func WriteTreeCommand(projectPath string) string {
 		log.Fatal(err.Error())
 	}
 
-	rootNode := &NitNode{
+	rootNode := &commands.NitNode{
 		Id:    projectPath,
 		Hash:  "",
-		Files: make([]*NitNode, 0),
+		Files: make([]*commands.NitNode, 0),
 		Type:  "tree",
 	}
 

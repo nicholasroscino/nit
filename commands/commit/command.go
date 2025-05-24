@@ -3,6 +3,7 @@ package commit
 import (
 	"errors"
 	"log"
+	"nit/commands"
 	"nit/commands/cat"
 	"nit/commands/write-tree"
 	"nit/utils"
@@ -10,14 +11,7 @@ import (
 	"strings"
 )
 
-type CommitObject struct {
-	TreeHash string
-	Parent   string
-	Author   string
-	Message  string
-}
-
-func serialiseCommitObject(commitObj CommitObject) string {
+func serialiseCommitObject(commitObj commands.CommitObject) string {
 	output := "tree " + commitObj.TreeHash + "\n"
 
 	if commitObj.Parent != "" {
@@ -84,7 +78,7 @@ func createCommitObject(nitPath string, treeHash string, author string, message 
 		log.Fatal("The tree hash is the same as the previous commit, no new commit created.")
 	}
 
-	newCommitObject := CommitObject{
+	newCommitObject := commands.CommitObject{
 		TreeHash: treeHash,
 		Parent:   prevCommitHash,
 		Author:   author,
