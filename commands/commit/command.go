@@ -1,8 +1,10 @@
-package commands
+package commit
 
 import (
 	"errors"
 	"log"
+	"nit/commands/cat"
+	"nit/commands/write-tree"
 	"nit/utils"
 	"os"
 	"strings"
@@ -59,7 +61,7 @@ func createCommitObject(nitPath string, treeHash string, author string, message 
 	prevCommitHash := string(fileContent)
 
 	if !os.IsNotExist(readHeadFileErr) {
-		file, err2 := catHeaderAndContent(nitPath, prevCommitHash)
+		file, err2 := cat.CatHeaderAndContent(nitPath, prevCommitHash)
 
 		if err2 != nil {
 			log.Fatal("Error reading previous commit hash:", err2)
@@ -100,10 +102,10 @@ func createCommitObject(nitPath string, treeHash string, author string, message 
 	return hash, nil
 }
 
-func CommitCommand(projectPath string, author string, message string) (string, error) {
+func commitCommand(projectPath string, author string, message string) (string, error) {
 	nitPath := utils.GetNitFolder(projectPath)
 
-	treeHash := WriteTreeCommand(projectPath)
+	treeHash := write_tree.WriteTreeCommand(projectPath)
 	commitHash, err := createCommitObject(nitPath, treeHash, author, message)
 	if err != nil {
 		log.Println("Error creating commit object:", err)

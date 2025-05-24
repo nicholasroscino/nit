@@ -1,14 +1,15 @@
-package commands
+package add
 
 import (
 	"errors"
 	"log"
+	"nit/commands/hash-object"
 	"nit/utils"
 	"os"
 	"time"
 )
 
-func AddCommand(projectPath string, filePath string) error {
+func addCommand(projectPath string, filePath string) error {
 	nitPath := utils.GetNitFolder(projectPath)
 
 	index, err := utils.GetIndex(nitPath)
@@ -25,7 +26,7 @@ func AddCommand(projectPath string, filePath string) error {
 		}
 	}
 
-	hash, gzipContent := GetHashObject(fileFullPath)
+	hash, gzipContent := hash_object.GetHashObject(fileFullPath)
 
 	if val, ok := index[filePath]; ok && val.Hash == hash {
 		return errors.New("file already added to the index")

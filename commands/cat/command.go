@@ -1,4 +1,4 @@
-package commands
+package cat
 
 import (
 	"bytes"
@@ -28,7 +28,7 @@ func fromGzip(content bytes.Buffer) (string, error) {
 	return out.String(), nil
 }
 
-func catHeaderAndContent(nitFolder string, hash string) ([]string, error) {
+func CatHeaderAndContent(nitFolder string, hash string) ([]string, error) {
 	if len(hash) != 40 {
 		return nil, errors.New("the hash provided is not a valid SHA1 hash")
 	}
@@ -57,9 +57,9 @@ func catHeaderAndContent(nitFolder string, hash string) ([]string, error) {
 	return strings.Split(theContent, "\u0000"), nil
 }
 
-func CatFileCommand(projectFolder string, hash string) (string, error) {
+func catFileCommand(projectFolder string, hash string) (string, error) {
 	nitFolder := projectFolder + "/.nit"
-	file, err := catHeaderAndContent(nitFolder, hash)
+	file, err := CatHeaderAndContent(nitFolder, hash)
 
 	if err != nil {
 		return "", err

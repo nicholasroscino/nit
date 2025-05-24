@@ -1,4 +1,4 @@
-package commands
+package hash_object
 
 import (
 	"nit/utils"
@@ -13,7 +13,7 @@ func GetHashObject(fileFullPath string) (string, string) {
 	return hash, gzipd
 }
 
-func HashObjectCommand(projectPath string, fileFullPath string) {
+func hashObjectCommand(projectPath string, fileFullPath string) {
 	nitFolder := utils.GetNitFolder(projectPath)
 	hash, gzipd := GetHashObject(fileFullPath)
 	utils.SaveHashToFileManaged(nitFolder, hash, gzipd)

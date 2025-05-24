@@ -1,4 +1,4 @@
-package commands
+package init
 
 import (
 	. "nit/utils"
@@ -35,7 +35,7 @@ func createNitFiles(path string) {
 	Check(err, "Unable to create .nit/description file\n")
 }
 
-func InitCommand(path string) {
+func initCommand(path string) {
 	path = path + "/.nit"
 	createNitFolders(path)
 	createNitFiles(path)

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"nit/console"
+	"nit/cli"
 	"nit/utils"
 	"os"
 )
@@ -13,5 +13,7 @@ func main() {
 	err = os.Setenv("NIT_DEBUG", "1")
 	utils.Check(err, "Unable to set NIT_DEBUG environment variable\n")
 
-	console.DispatchCommand(path, os.Args)
+	commandDispatcher := cli.NewCliCommandDispatcher()
+	commandDispatcher.Init()
+	commandDispatcher.DispatchCommand(path, os.Args)
 }
