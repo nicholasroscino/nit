@@ -11,6 +11,10 @@ import (
 	"os"
 )
 
+func GetNitFolder(projectDir string) string {
+	return projectDir + "/.nit"
+}
+
 func Check(e error, msg string) {
 	val := os.Getenv("NIT_DEBUG")
 
@@ -86,13 +90,13 @@ func GetHashObjectFromContent(fileContent string, fileType string) (string, stri
 	return hash, gzipd
 }
 
-func GetNitRepoFolder(path string) (string, error) {
-	if _, err := os.Stat(path + "/.nit"); os.IsNotExist(err) {
-		return "", errors.New(path + " is not a nit repository")
-	}
-
-	return path + "/.nit", nil
-}
+//func GetNitRepoFolder(path string) (string, error) {
+//	if _, err := os.Stat(path + "/.nit"); os.IsNotExist(err) {
+//		return "", errors.New(path + " is not a nit repository")
+//	}
+//
+//	return path + "/.nit", nil
+//}
 
 func ObjectExist(nitPath string, hash string) bool {
 	if len(hash) != 40 {

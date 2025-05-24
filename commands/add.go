@@ -5,13 +5,13 @@ import (
 	"log"
 	"nit/utils"
 	"os"
-	"strings"
 	"time"
 )
 
-func AddCommand(nitPath string, filePath string) error {
+func AddCommand(projectPath string, filePath string) error {
+	nitPath := utils.GetNitFolder(projectPath)
+
 	index, err := utils.GetIndex(nitPath)
-	projectPath := nitPath[0:strings.LastIndex(nitPath, ".nit")]
 	fileFullPath := projectPath + "/" + filePath
 
 	if err != nil {

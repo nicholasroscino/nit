@@ -130,8 +130,8 @@ func WriteTree(currentPath *utils.StagedObject, rootNode *NitNode) *NitNode {
 	return rootNode
 }
 
-func WriteTreeCommand(nitPath string) string {
-	projectPath := nitPath[0:strings.LastIndex(nitPath, ".nit")]
+func WriteTreeCommand(projectPath string) string {
+	nitPath := utils.GetNitFolder(projectPath)
 
 	index, err := utils.GetIndex(nitPath)
 	if err != nil {

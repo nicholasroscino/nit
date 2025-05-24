@@ -16,11 +16,17 @@ type CommitObject struct {
 }
 
 func serialiseCommitObject(commitObj CommitObject) string {
-	return "tree " + commitObj.TreeHash + "\n" +
-		"parent " + commitObj.Parent + "\n" +
-		"author " + commitObj.Author + "\n" +
+	output := "tree " + commitObj.TreeHash + "\n"
+
+	if commitObj.Parent != "" {
+		output += "parent " + commitObj.Parent + "\n"
+	}
+
+	output += "author " + commitObj.Author + "\n" +
 		"\n" +
-		"message " + commitObj.Message + "\n"
+		"message " + commitObj.Message
+
+	return output
 }
 
 func createCommitObject(nitPath string, treeHash string, author string, message string) (string, error) {
@@ -52,6 +58,11 @@ func createCommitObject(nitPath string, treeHash string, author string, message 
 	}
 	commitFileContent := serialiseCommitObject(newCommitObject)
 	hash, gzipd := utils.GetHashObjectFromContent(commitFileContent, "commit")
+
+	if hash == prevCommitHash {
+		log.Fatal("Nothing to commit, working tree clean")
+	}
+
 	utils.SaveHashToFileManaged(nitPath, hash, gzipd)
 
 	// Write the new commit hash to HEAD
@@ -63,8 +74,10 @@ func createCommitObject(nitPath string, treeHash string, author string, message 
 	return hash, nil
 }
 
-func CommitCommand(nitPath string, author string, message string) (string, error) {
-	treeHash := WriteTreeCommand(nitPath)
+func CommitCommand(projectPath string, author string, message string) (string, error) {
+	nitPath := utils.GetNitFolder(projectPath)
+
+	treeHash := WriteTreeCommand(projectPath)
 	commitHash, err := createCommitObject(nitPath, treeHash, author, message)
 	if err != nil {
 		log.Println("Error creating commit object:", err)

@@ -13,7 +13,8 @@ func GetHashObject(fileFullPath string) (string, string) {
 	return hash, gzipd
 }
 
-func HashObjectCommand(nitFolder string, fileFullPath string) {
+func HashObjectCommand(projectPath string, fileFullPath string) {
+	nitFolder := utils.GetNitFolder(projectPath)
 	hash, gzipd := GetHashObject(fileFullPath)
 	utils.SaveHashToFileManaged(nitFolder, hash, gzipd)
 }

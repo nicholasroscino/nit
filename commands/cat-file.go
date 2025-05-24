@@ -28,7 +28,9 @@ func fromGzip(content bytes.Buffer) (string, error) {
 	return out.String(), nil
 }
 
-func CatFileCommand(nitFolder string, hash string) (string, error) {
+func CatFileCommand(projectFolder string, hash string) (string, error) {
+	nitFolder := projectFolder + "/.nit"
+
 	if len(hash) != 40 {
 		return "", errors.New("the hash provided is not a valid SHA1 hash")
 	}
