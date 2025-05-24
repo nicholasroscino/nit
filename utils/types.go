@@ -2,6 +2,11 @@ package utils
 
 import "errors"
 
+type StagedObject struct {
+	Hash      string
+	Path      string
+	Timestamp string
+}
 type HashAlreadyExist struct{}
 
 func (m *HashAlreadyExist) Error() string {

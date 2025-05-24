@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"log"
+	"nit/utils"
 	"os"
 	"strings"
 )
@@ -58,7 +59,9 @@ func CatHeaderAndContent(nitFolder string, hash string) ([]string, error) {
 }
 
 func catFileCommand(projectFolder string, hash string) (string, error) {
-	nitFolder := projectFolder + "/.nit"
+	nitFolder, err := utils.GetNitRepoFolder(projectFolder)
+	utils.Check(err, "This is not a nit repository")
+
 	file, err := CatHeaderAndContent(nitFolder, hash)
 
 	if err != nil {

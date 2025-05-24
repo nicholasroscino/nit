@@ -10,7 +10,8 @@ import (
 )
 
 func addCommand(projectPath string, filePath string) error {
-	nitPath := utils.GetNitFolder(projectPath)
+	nitPath, err := utils.GetNitRepoFolder(projectPath)
+	utils.Check(err, "This is not a nit repository")
 
 	index, err := utils.GetIndex(nitPath)
 	fileFullPath := projectPath + "/" + filePath

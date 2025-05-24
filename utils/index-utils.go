@@ -6,12 +6,6 @@ import (
 	"strings"
 )
 
-type StagedObject struct {
-	Hash      string
-	Path      string
-	Timestamp string
-}
-
 func SerializeStagedObject(stagedObject StagedObject) string {
 	return stagedObject.Hash + " " + stagedObject.Path + " " + stagedObject.Timestamp
 }

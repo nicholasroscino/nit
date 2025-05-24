@@ -14,7 +14,9 @@ func GetHashObject(fileFullPath string) (string, string) {
 }
 
 func hashObjectCommand(projectPath string, fileFullPath string) {
-	nitFolder := utils.GetNitFolder(projectPath)
+	nitFolder, err := utils.GetNitRepoFolder(projectPath)
+	utils.Check(err, "This is not a nit repository")
+
 	hash, gzipd := GetHashObject(fileFullPath)
 	utils.SaveHashToFileManaged(nitFolder, hash, gzipd)
 }

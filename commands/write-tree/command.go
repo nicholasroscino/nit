@@ -119,7 +119,8 @@ func WriteTree(currentPath *utils.StagedObject, rootNode *commands.NitNode) *com
 }
 
 func WriteTreeCommand(projectPath string) string {
-	nitPath := utils.GetNitFolder(projectPath)
+	nitPath, err := utils.GetNitRepoFolder(projectPath)
+	utils.Check(err, "This is not a nit repository")
 
 	index, err := utils.GetIndex(nitPath)
 	if err != nil {

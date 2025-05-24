@@ -97,7 +97,8 @@ func createCommitObject(nitPath string, treeHash string, author string, message 
 }
 
 func commitCommand(projectPath string, author string, message string) (string, error) {
-	nitPath := utils.GetNitFolder(projectPath)
+	nitPath, err := utils.GetNitRepoFolder(projectPath)
+	utils.Check(err, "This is not a nit repository")
 
 	treeHash := write_tree.WriteTreeCommand(projectPath)
 	commitHash, err := createCommitObject(nitPath, treeHash, author, message)
