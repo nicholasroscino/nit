@@ -9,7 +9,26 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 )
+
+func GetLastCommitHash(nitPath string) (string, string, error) {
+	headPath := nitPath + "/HEAD"
+
+	currentHeadFilePathDesc, err := os.ReadFile(headPath)
+	if err != nil {
+		return "", "", err
+	}
+	str := strings.Split(string(currentHeadFilePathDesc), " ")
+	currentHeadFilePath := nitPath + "/" + str[1]
+
+	fileContent, readHeadFileErr := os.ReadFile(currentHeadFilePath)
+
+	if readHeadFileErr != nil && !os.IsNotExist(readHeadFileErr) {
+		return "", currentHeadFilePath, readHeadFileErr
+	}
+	return string(fileContent), currentHeadFilePath, readHeadFileErr
+}
 
 func Check(e error, msg string) {
 	val := os.Getenv("NIT_DEBUG")

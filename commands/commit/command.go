@@ -35,24 +35,8 @@ func getTreeHashFromFileContent(fileContent []string) (string, error) {
 }
 
 func createCommitObject(nitPath string, treeHash string, author string, message string) (string, error) {
-	headPath := nitPath + "/HEAD"
-
-	currentHeadFilePathDesc, err := os.ReadFile(headPath)
-	if err != nil {
-		return "", err
-	}
-	str := strings.Split(string(currentHeadFilePathDesc), " ")
-	currentHeadFilePath := nitPath + "/" + str[1]
-
-	fileContent, readHeadFileErr := os.ReadFile(currentHeadFilePath)
-
+	prevCommitHash, currentHeadFilePath, readHeadFileErr := utils.GetLastCommitHash(nitPath)
 	prevCommitTreeHash := ""
-
-	if readHeadFileErr != nil && !os.IsNotExist(readHeadFileErr) {
-		return "", readHeadFileErr
-	}
-
-	prevCommitHash := string(fileContent)
 
 	if !os.IsNotExist(readHeadFileErr) {
 		file, err2 := cat.CatHeaderAndContent(nitPath, prevCommitHash)
@@ -88,7 +72,7 @@ func createCommitObject(nitPath string, treeHash string, author string, message 
 	hash, gzipd := utils.GetHashObjectFromContent(commitFileContent, "commit")
 	utils.SaveHashToFileManaged(nitPath, hash, gzipd)
 
-	err = os.WriteFile(currentHeadFilePath, []byte(hash), 0644)
+	err := os.WriteFile(currentHeadFilePath, []byte(hash), 0644)
 	if err != nil {
 		return "", err
 	}
