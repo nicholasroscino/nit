@@ -19,6 +19,7 @@ func logCommand(projectPath string) error {
 		utils.Check(err, "Error reading the last commit object")
 
 		commitObj := commands.NewCommitObject(content[1])
+		println("Commit Hash:", lastCommitHash)
 		println(commitObj.BeautyPrint())
 
 		lastCommitHash = commitObj.Parent
