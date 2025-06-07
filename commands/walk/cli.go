@@ -7,35 +7,50 @@ import (
 	"nit/utils"
 )
 
-func walkCliCommand(cmd string) (*flag.FlagSet, *string) {
+func walkCliCommand(cmd string) (*flag.FlagSet, *string, *string) {
 	walkFlag := flag.NewFlagSet(cmd, flag.ExitOnError)
 
+	branchName := walkFlag.String("b", "", "Branch to walk to")
 	commitHash := walkFlag.String("c", "", "Commit hash to start walking from")
 
-	return walkFlag, commitHash
+	return walkFlag, branchName, commitHash
 }
 
-func handleLogCommand(walkFlag *flag.FlagSet, commitHash *string, projectPath string, args []string) {
-	err := walkFlag.Parse(args)
-	utils.Check(err, "Error parsing log command arguments")
+func isValidBranchName(branchName *string) bool {
+	return branchName != nil && len(*branchName) > 0
+}
 
-	if commitHash == nil || len(*commitHash) != 40 {
-		log.Fatal("walk command requires a valid commit hash to move to.")
+func isValidCommitHash(commitHash *string) bool {
+	return commitHash != nil && len(*commitHash) == 40
+}
+
+func handleWalkCommand(walkFlag *flag.FlagSet, branchName *string, commitHash *string, projectPath string, args []string) {
+	err := walkFlag.Parse(args)
+	utils.Check(err, "Error parsing walk command arguments")
+
+	validHash := isValidCommitHash(commitHash)
+	validBranch := isValidBranchName(branchName)
+
+	if validHash == validBranch { // XOR logic: one must be valid, but not both
+		log.Fatal("walk command requires either a valid commit hash or a branch name but not both.\n")
 	}
 
-	err = walkCommand(projectPath, commitHash)
-	utils.Check(err, "Error executing log command")
+	walkCommand(projectPath, commitHash, branchName)
 
-	log.Println("You are currently in detached HEAD state. Current HEAD position:", *commitHash)
+	if validBranch {
+		log.Println("walking to ", *branchName)
+	} else if validHash {
+		log.Println("You are currently in detached HEAD state. Current HEAD position:", *commitHash)
+	}
 }
 
 func CommandBuilder() commands.CommandBuilderOutput {
 	command := "walk"
-	walkFlag, commitHash := walkCliCommand(command)
+	walkFlag, branchName, commitHash := walkCliCommand(command)
 
 	return commands.CommandBuilderOutput{
 		Cmd: func(projectPath string, args []string) {
-			handleLogCommand(walkFlag, commitHash, projectPath, args)
+			handleWalkCommand(walkFlag, branchName, commitHash, projectPath, args)
 		},
 		Name: command,
 	}

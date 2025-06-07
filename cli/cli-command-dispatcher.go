@@ -7,26 +7,26 @@ import (
 	"nit/commands/cat"
 	"nit/commands/commit"
 	"nit/commands/hash-object"
-	init_pkg "nit/commands/init"
+	initpkg "nit/commands/init"
 	nitlog "nit/commands/log"
 	"nit/commands/walk"
 	"nit/commands/write-tree"
 )
 
-type CliCommandDispatcher struct {
+type CommandDispatcher struct {
 	commands map[string]commands.Command
 }
 
-func NewCliCommandDispatcher() *CliCommandDispatcher {
-	return &CliCommandDispatcher{
+func NewCommandDispatcher() *CommandDispatcher {
+	return &CommandDispatcher{
 		commands: make(map[string]commands.Command),
 	}
 }
 
-func (r *CliCommandDispatcher) Init() {
+func (r *CommandDispatcher) Init() {
 	hashObjectHandler := hash_object.CommandBuilder()
 	commitHandler := commit.CommandBuilder()
-	initHandler := init_pkg.CommandBuilder()
+	initHandler := initpkg.CommandBuilder()
 	addHandler := add.CommandBuilder()
 	catHandler := cat.CommandBuilder()
 	writeTreeHandler := write_tree.CommandBuilder()
@@ -43,7 +43,7 @@ func (r *CliCommandDispatcher) Init() {
 	r.commands[walkHandler.Name] = walkHandler.Cmd
 }
 
-func (r *CliCommandDispatcher) DispatchCommand(projectPath string, osArgs []string) {
+func (r *CommandDispatcher) DispatchCommand(projectPath string, osArgs []string) {
 	command := r.commands[osArgs[1]]
 
 	if command == nil {

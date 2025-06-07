@@ -12,22 +12,38 @@ import (
 	"strings"
 )
 
+func WriteOnHead(nitPath string, content string) {
+	headPath := nitPath + "/HEAD"
+
+	_, err := os.Stat(headPath)
+	Check(err, "Error retrieving HEAD file")
+
+	err = os.WriteFile(headPath, []byte(content), 0644)
+	Check(err, "Error writing to HEAD file")
+}
+
 func GetLastCommitHash(nitPath string) (string, string, error) {
 	headPath := nitPath + "/HEAD"
 
 	currentHeadFilePathDesc, err := os.ReadFile(headPath)
-	if err != nil {
-		return "", "", err
-	}
-	str := strings.Split(string(currentHeadFilePathDesc), " ")
-	currentHeadFilePath := nitPath + "/" + str[1]
+	Check(err, "Error reading HEAD file")
 
-	fileContent, readHeadFileErr := os.ReadFile(currentHeadFilePath)
+	if strings.HasPrefix(string(currentHeadFilePathDesc), "ref: ") {
+		str := strings.Split(string(currentHeadFilePathDesc), " ")
+		currentHeadFilePath := nitPath + "/" + strings.Trim(strings.TrimSpace(str[1]), "\n")
 
-	if readHeadFileErr != nil && !os.IsNotExist(readHeadFileErr) {
-		return "", currentHeadFilePath, readHeadFileErr
+		fileContent, readHeadFileErr := os.ReadFile(currentHeadFilePath)
+
+		if readHeadFileErr != nil && !os.IsNotExist(readHeadFileErr) {
+			return "", currentHeadFilePath, readHeadFileErr
+		}
+		return string(fileContent), currentHeadFilePath, readHeadFileErr
+	} else if len(currentHeadFilePathDesc) == 40 {
+		return strings.TrimSpace(string(currentHeadFilePathDesc)), headPath, nil
+	} else {
+		return "", "", errors.New("HEAD file is not a valid reference or commit hash")
 	}
-	return string(fileContent), currentHeadFilePath, readHeadFileErr
+
 }
 
 func Check(e error, msg string) {
@@ -85,8 +101,9 @@ func SaveHashToFileManaged(nitFolder string, hash string, gzipd string) {
 }
 
 func SaveHashToFile(nitFolder string, hash string, gzipd string) error {
+
 	err := os.Mkdir(nitFolder+"/objects/"+hash[0:2], 0755)
-	if err != nil && os.IsExist(err) {
+	if err != nil && os.IsExist(err) && ObjectExist(nitFolder, hash) {
 		return &HashAlreadyExist{}
 	}
 

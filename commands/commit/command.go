@@ -67,8 +67,10 @@ func createCommitObject(nitPath string, treeHash string, author string, message 
 		Author:   author,
 		Message:  message,
 	}
+
 	commitFileContent := serialiseCommitObject(newCommitObject)
 	hash, gzipd := utils.GetHashObjectFromContent(commitFileContent, "commit")
+
 	utils.SaveHashToFileManaged(nitPath, hash, gzipd)
 
 	err := os.WriteFile(currentHeadFilePath, []byte(hash), 0644)
@@ -86,7 +88,6 @@ func commitCommand(projectPath string, author string, message string) (string, e
 	treeHash := write_tree.WriteTreeCommand(projectPath)
 	commitHash, err := createCommitObject(nitPath, treeHash, author, message)
 	if err != nil {
-		log.Println("Error creating commit object:", err)
 		return "", errors.New("error creating commit object")
 	}
 	log.Println("Commit created with hash:", commitHash)

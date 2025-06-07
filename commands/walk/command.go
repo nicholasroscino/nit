@@ -6,20 +6,23 @@ import (
 	"nit/commands"
 	"nit/commands/cat"
 	"nit/utils"
+	"os"
 	"strings"
 )
 
-func walkCommand(projectPath string, commitHash *string) error {
-	nitPath, err := utils.GetNitRepoFolder(projectPath)
-	utils.Check(err, "This is not a nit repository")
+func walkDetachedState(nitPath string, projectPath string, commitHash *string) {
+	moveToCommit(nitPath, projectPath, *commitHash)
+	utils.WriteOnHead(nitPath, *commitHash)
+}
 
-	headerAndContent, err := cat.CatHeaderAndContent(nitPath, *commitHash)
+func moveToCommit(nitPath string, projectPath string, commitHash string) {
+	headerAndContent, err := cat.CatHeaderAndContent(nitPath, commitHash)
 	utils.Check(err, "Error reading the commit object")
 
 	headerWithSize := strings.Split(headerAndContent[0], " ")
 
 	if headerWithSize[0] != "commit" {
-		return errors.New("the provided hash does not point to a valid commit object")
+		log.Fatal("the provided hash does not point to a valid commit object")
 	}
 
 	lines, err := utils.GetIndexFile(nitPath)
@@ -39,7 +42,7 @@ func walkCommand(projectPath string, commitHash *string) error {
 
 		if err != nil {
 			rollbackDeletedFiles(projectPath, deletedFiles)
-			return err
+			log.Fatal(err.Error())
 		}
 
 		fullPath := projectPath + "/" + stagedObject.Path
@@ -48,7 +51,7 @@ func walkCommand(projectPath string, commitHash *string) error {
 
 		if err != nil {
 			rollbackDeletedFiles(projectPath, deletedFiles)
-			return err
+			log.Fatal(err.Error())
 		}
 
 		deletedFiles = append(deletedFiles, struct {
@@ -63,10 +66,47 @@ func walkCommand(projectPath string, commitHash *string) error {
 
 	if err != nil {
 		rollbackDeletedFiles(projectPath, deletedFiles)
-		return err
+		log.Fatal(err.Error())
+	}
+}
+
+func walkToBranch(nitPath string, projectPath string, branchName string) {
+	branchFilePath := nitPath + "/refs/heads/" + branchName
+
+	lastCommit, _, err := utils.GetLastCommitHash(nitPath)
+	utils.Check(err, "Error getting the last commit hash")
+
+	if _, err = os.Stat(branchFilePath); err != nil {
+		log.Println("Branch does not exist:", branchName)
+
+		err = os.WriteFile(branchFilePath, []byte(lastCommit), 0644)
+		utils.Check(err, "Error creating the branch file")
+		log.Println("Created a new branch with the name:", branchName)
+	} else {
+		branchContent, err := os.ReadFile(branchFilePath)
+		utils.Check(err, "Error reading the branch file")
+
+		fileContent := string(branchContent)
+
+		if len(fileContent) != 40 {
+			log.Fatal("Error reading the branch file: it does not contain a valid commit hash")
+		}
+
+		moveToCommit(nitPath, projectPath, fileContent)
 	}
 
-	return nil
+	utils.WriteOnHead(nitPath, "ref: "+"refs/heads/"+branchName)
+}
+
+func walkCommand(projectPath string, commitHash *string, branchName *string) {
+	nitPath, err := utils.GetNitRepoFolder(projectPath)
+	utils.Check(err, "This is not a nit repository")
+
+	if commitHash != nil && *commitHash != "" {
+		walkDetachedState(nitPath, projectPath, commitHash)
+	} else if branchName != nil && *branchName != "" {
+		walkToBranch(nitPath, projectPath, *branchName)
+	}
 }
 
 func walkAndWrite(currentTreeHash string, currentPath string, nitPath string, projectPath string) error {
@@ -76,7 +116,6 @@ func walkAndWrite(currentTreeHash string, currentPath string, nitPath string, pr
 	fileTypeAndSize := strings.Split(treeContent[0], " ")
 
 	if fileTypeAndSize[0] != "tree" {
-		log.Println("apparently not a tree :thinking: " + fileTypeAndSize[0])
 		return errors.New("the provided hash does not point to a valid tree object")
 	}
 

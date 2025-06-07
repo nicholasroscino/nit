@@ -140,5 +140,9 @@ func WriteTreeCommand(projectPath string) string {
 
 	hash, _ := CreateTreeFile(nitPath, rootNode)
 
+	if len(hash) != 40 {
+		log.Fatal("Error creating tree hash, hash length is not 40 characters")
+	}
+
 	return hash
 }

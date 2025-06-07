@@ -13,7 +13,7 @@ func main() {
 	//err = os.Setenv("NIT_DEBUG", "1")
 	utils.Check(err, "Unable to set NIT_DEBUG environment variable\n")
 
-	commandDispatcher := cli.NewCliCommandDispatcher()
+	commandDispatcher := cli.NewCommandDispatcher()
 	commandDispatcher.Init()
 	commandDispatcher.DispatchCommand(path, os.Args)
 }
