@@ -25,6 +25,8 @@ func handleLogCommand(walkFlag *flag.FlagSet, commitHash *string, projectPath st
 
 	err = walkCommand(projectPath, commitHash)
 	utils.Check(err, "Error executing log command")
+
+	log.Println("You are currently in detached HEAD state. Current HEAD position:", *commitHash)
 }
 
 func CommandBuilder() commands.CommandBuilderOutput {
