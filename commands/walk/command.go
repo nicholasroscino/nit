@@ -9,66 +9,6 @@ import (
 	"strings"
 )
 
-func walkCommand(projectPath string, commitHash *string) error {
-	nitPath, err := utils.GetNitRepoFolder(projectPath)
-	utils.Check(err, "This is not a nit repository")
-
-	headerAndContent, err := cat.CatHeaderAndContent(nitPath, *commitHash)
-	utils.Check(err, "Error reading the commit object")
-
-	headerWithSize := strings.Split(headerAndContent[0], " ")
-
-	if headerWithSize[0] != "commit" {
-		return errors.New("the provided hash does not point to a valid commit object")
-	}
-
-	lines, err := utils.GetIndexFile(nitPath)
-	utils.Check(err, "Error reading the index file")
-
-	deletedFiles := make([]struct {
-		path string
-		hash string
-	}, 0)
-
-	for _, line := range lines {
-		if line == "" {
-			continue
-		}
-
-		stagedObject, err := utils.ParseStagedObject(line)
-
-		if err != nil {
-			rollbackDeletedFiles(nitPath, projectPath, deletedFiles)
-			return err
-		}
-
-		fullPath := projectPath + "/" + stagedObject.Path
-
-		err = utils.DeleteFile(fullPath)
-
-		if err != nil {
-			rollbackDeletedFiles(nitPath, projectPath, deletedFiles)
-			return err
-		}
-
-		deletedFiles = append(deletedFiles, struct {
-			path string
-			hash string
-		}{path: stagedObject.Path, hash: stagedObject.Hash})
-	}
-
-	commitObj := commands.NewCommitObject(headerAndContent[1])
-
-	err = walkAndWrite(commitObj.TreeHash, projectPath, nitPath, projectPath)
-
-	if err != nil {
-		rollbackDeletedFiles(nitPath, projectPath, deletedFiles)
-		return err
-	}
-
-	return nil
-}
-
 func getTreeNodeFromContent(treeContentRaw string) ([]*commands.NitTreeFileContent, error) {
 	treeContent := strings.Split(treeContentRaw, "\n")
 
@@ -128,7 +68,7 @@ func walkAndWrite(currentTreeHash string, currentPath string, nitPath string, pr
 	return nil
 }
 
-func rollbackDeletedFiles(nitPath string, projectPath string, deletedFiles []struct {
+func rollbackDeletedFiles(projectPath string, deletedFiles []struct {
 	path string
 	hash string
 }) {
@@ -139,4 +79,64 @@ func rollbackDeletedFiles(nitPath string, projectPath string, deletedFiles []str
 		utils.Check(err, "Error restoring file: "+file.path)
 
 	}
+}
+
+func walkCommand(projectPath string, commitHash *string) error {
+	nitPath, err := utils.GetNitRepoFolder(projectPath)
+	utils.Check(err, "This is not a nit repository")
+
+	headerAndContent, err := cat.CatHeaderAndContent(nitPath, *commitHash)
+	utils.Check(err, "Error reading the commit object")
+
+	headerWithSize := strings.Split(headerAndContent[0], " ")
+
+	if headerWithSize[0] != "commit" {
+		return errors.New("the provided hash does not point to a valid commit object")
+	}
+
+	lines, err := utils.GetIndexFile(nitPath)
+	utils.Check(err, "Error reading the index file")
+
+	deletedFiles := make([]struct {
+		path string
+		hash string
+	}, 0)
+
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+
+		stagedObject, err := utils.ParseStagedObject(line)
+
+		if err != nil {
+			rollbackDeletedFiles(projectPath, deletedFiles)
+			return err
+		}
+
+		fullPath := projectPath + "/" + stagedObject.Path
+
+		err = utils.DeleteFile(fullPath)
+
+		if err != nil {
+			rollbackDeletedFiles(projectPath, deletedFiles)
+			return err
+		}
+
+		deletedFiles = append(deletedFiles, struct {
+			path string
+			hash string
+		}{path: stagedObject.Path, hash: stagedObject.Hash})
+	}
+
+	commitObj := commands.NewCommitObject(headerAndContent[1])
+
+	err = walkAndWrite(commitObj.TreeHash, projectPath, nitPath, projectPath)
+
+	if err != nil {
+		rollbackDeletedFiles(projectPath, deletedFiles)
+		return err
+	}
+
+	return nil
 }
