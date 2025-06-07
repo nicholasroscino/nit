@@ -8,6 +8,12 @@ type CommandBuilderOutput struct {
 	Name string
 }
 
+type NitTreeFileContent struct {
+	Type     string
+	Hash     string
+	PathName string
+}
+
 type NitNode struct {
 	Id    string
 	Hash  string

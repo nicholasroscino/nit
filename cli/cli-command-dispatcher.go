@@ -9,6 +9,7 @@ import (
 	"nit/commands/hash-object"
 	init_pkg "nit/commands/init"
 	nitlog "nit/commands/log"
+	"nit/commands/walk"
 	"nit/commands/write-tree"
 )
 
@@ -30,6 +31,7 @@ func (r *CliCommandDispatcher) Init() {
 	catHandler := cat.CommandBuilder()
 	writeTreeHandler := write_tree.CommandBuilder()
 	logHandler := nitlog.CommandBuilder()
+	walkHandler := walk.CommandBuilder()
 
 	r.commands[hashObjectHandler.Name] = hashObjectHandler.Cmd
 	r.commands[commitHandler.Name] = commitHandler.Cmd
@@ -38,6 +40,7 @@ func (r *CliCommandDispatcher) Init() {
 	r.commands[catHandler.Name] = catHandler.Cmd
 	r.commands[writeTreeHandler.Name] = writeTreeHandler.Cmd
 	r.commands[logHandler.Name] = logHandler.Cmd
+	r.commands[walkHandler.Name] = walkHandler.Cmd
 }
 
 func (r *CliCommandDispatcher) DispatchCommand(projectPath string, osArgs []string) {

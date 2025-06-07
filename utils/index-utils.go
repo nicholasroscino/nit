@@ -24,7 +24,7 @@ func ParseStagedObject(line string) (StagedObject, error) {
 	}, nil
 }
 
-func GetIndex(nitPath string) (map[string]StagedObject, error) {
+func GetIndexFile(nitPath string) ([]string, error) {
 	indexPath := nitPath + "/index"
 	_, err := os.Stat(indexPath)
 
@@ -35,11 +35,18 @@ func GetIndex(nitPath string) (map[string]StagedObject, error) {
 	content, err := os.ReadFile(indexPath)
 	Check(err, "Error reading the index file")
 
-	index := make(map[string]StagedObject)
-
 	lines := string(content)
+	return strings.Split(lines, "\n"), nil
+}
 
-	parts := strings.Split(lines, "\n")
+func GetIndex(nitPath string) (map[string]StagedObject, error) {
+	parts, err := GetIndexFile(nitPath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	index := make(map[string]StagedObject)
 
 	for _, line := range parts {
 		if strings.Trim(line, " ") == "" {

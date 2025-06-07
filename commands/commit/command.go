@@ -58,7 +58,6 @@ func createCommitObject(nitPath string, treeHash string, author string, message 
 	}
 
 	if prevCommitTreeHash != "" && prevCommitTreeHash == treeHash {
-		log.Println("ma qui ci finisco?")
 		log.Fatal("The tree hash is the same as the previous commit, no new commit created.")
 	}
 

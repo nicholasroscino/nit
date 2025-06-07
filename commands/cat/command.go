@@ -58,6 +58,22 @@ func CatHeaderAndContent(nitFolder string, hash string) ([]string, error) {
 	return strings.Split(theContent, "\u0000"), nil
 }
 
+func CatHashToFile(projectPath string, hash string, targetPath string) error {
+	if len(hash) != 40 {
+		return errors.New("the hash provided is not a valid SHA1 hash")
+	}
+
+	content, err := catFileCommand(projectPath, hash)
+	utils.Check(err, "Error reading the file with hash: "+hash)
+
+	targetPath = strings.Trim(targetPath, "\n")
+
+	err = utils.WriteFile(targetPath, content)
+	utils.Check(err, "Error writing the file to the target path: "+targetPath)
+
+	return nil
+}
+
 func catFileCommand(projectFolder string, hash string) (string, error) {
 	nitFolder, err := utils.GetNitRepoFolder(projectFolder)
 	utils.Check(err, "This is not a nit repository")

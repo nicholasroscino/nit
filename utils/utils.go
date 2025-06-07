@@ -126,3 +126,26 @@ func ObjectExist(nitPath string, hash string) bool {
 
 	return true
 }
+
+func WriteFile(path string, content string) error {
+	err := os.WriteFile(path, []byte(content), 0644)
+
+	if err != nil {
+		return errors.New("error writing file to target path: " + path + " - " + err.Error())
+	}
+
+	return nil
+}
+
+func DeleteFile(path string) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return nil
+	}
+
+	err := os.Remove(path)
+	if err != nil {
+		return errors.New("error deleting file: " + path + " - " + err.Error())
+	}
+
+	return nil
+}
